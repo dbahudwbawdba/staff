@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rank Verdeling Beheer</title>
+
+<style>
+/* --- GLOBAL --- */
+body{
+  font-family: 'Inter', Arial, sans-serif;
+  background: linear-gradient(135deg, #0f0f0f, #1a1a1a 40%, #0d0d0d);
+  color:white;
+  padding:30px;
+  margin:0;
+  overflow-x:hidden;
+}
+
+h1{
+  text-align:center;
+  font-size:42px;
+  font-weight:800;
+  margin-bottom:35px;
+  color:#ffffffd9;
+  text-shadow:0 0 25px #00aaff55;
+  animation: fadeIn 1s ease-out;
+}
+
+/* --- BUTTONS --- */
+button{
+  padding:10px 16px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  background:#00aaff;
+  color:white;
+  transition:0.25s ease;
+  box-shadow:0 0 12px #00aaff55;
+}
+
+button:hover{
+  background:#0095dd;
+  transform:translateY(-3px) scale(1.03);
+  box-shadow:0 0 18px #00aaffaa;
+}
+
+button:active{
+  transform:scale(0.97);
+}
+
+/* --- ROLE CONTAINER --- */
+.role-container{
+  display:flex;
+  flex-wrap:wrap;
+  gap:30px;
+  justify-content:center;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* --- ROLE CARD --- */
+.role{
+  background:rgba(255,255,255,0.06);
+  backdrop-filter:blur(14px);
+  padding:22px;
+  border-radius:18px;
+  width:290px;
+  min-height:230px;
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 0 25px #00000055;
+  transition:0.35s ease;
+  transform:translateY(0);
+  animation: cardPop 0.6s ease-out;
+}
+
+.role:hover{
+  transform:translateY(-6px);
+  box-shadow:0 0 35px #000000aa;
+}
+
+/* --- ROLE HEADER --- */
+.role-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.role-title{
+  font-weight:700;
+  font-size:20px;
+  outline:none;
+  padding:4px 6px;
+  border-radius:6px;
+  transition:0.25s ease;
+}
+
+.role-title:hover{
+  background:rgba(255,255,255,0.12);
+  transform:scale(1.03);
+}
+
+.delete-role{
+  background:#e74c3c;
+  padding:6px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.delete-role:hover{
+  background:#c0392b;
+}
+
+/* --- MEMBER ITEM --- */
+.member{
+  background:rgba(255,255,255,0.08);
+  padding:8px;
+  margin:6px 0;
+  border-radius:8px;
+  cursor:pointer;
+  transition:0.25s ease;
+  border:1px solid rgba(255,255,255,0.05);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.member:hover{
+  background:rgba(255,255,255,0.18);
+  transform:translateX(6px);
+  box-shadow:0 0 12px #ffffff22;
+}
+
+.member-info{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.member img{
+  width:32px;
+  height:32px;
+  border-radius:4px;
+}
+
+.member-delete{
+  background:#e74c3c;
+  border:none;
+  color:white;
+  padding:4px 8px;
+  border-radius:4px;
+  cursor:pointer;
+  font-size:12px;
+  transition:0.25s ease;
+}
+
+.member-delete:hover{
+  background:#c0392b;
+}
+
+/* --- NOTE POPUP --- */
+.note-popup{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  background:#111;
+  padding:25px;
+  border-radius:12px;
+  width:350px;
+  box-shadow:0 0 25px #000;
+  z-index:9999;
+}
+
+.note-popup textarea{
+  width:100%;
+  height:120px;
+  margin-bottom:15px;
+  border-radius:8px;
+  padding:10px;
+  background:#222;
+  color:white;
+  border:1px solid #444;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes fadeIn {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+@keyframes cardPop {
+  0% { transform:scale(0.85) translateY(20px); opacity:0; }
+  100% { transform:scale(1) translateY(0); opacity:1; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>HUIDIGE RANK VERDELING</h1>
+
+<div class="controls">
+  <button onclick="addRole()">➕ Nieuwe Rol</button>
+</div>
+
+<div class="role-container" id="roles"></div>
+
+<script>
+/* --- DATA MET NOTITIES --- */
+const data = [
+  { name:"🟢 Staff", color:"#2ecc71", members:[
+    { name:"Mike", note:"" },
+    { name:"Odsko", note:"" },
+    { name:"Anne", note:"" },
+    { name:"Jay", note:"" },
+    { name:"Bitterbal", note:"" }
+  ]},
+  { name:"🟣 Senior Staff", color:"#9b59b6", members:[
+    { name:"Noot", note:"" },
+    { name:"Peanut", note:"" },
+    { name:"Daniel", note:"" },
+    { name:"Ayden", note:"" }
+  ]},
+  { name:"🔴 Admin", color:"#e74c3c", members:[
+    { name:"Penpijn", note:"" },
+    { name:"Shay", note:"" }
+  ]},
+  { name:"🟡 Beheer", color:"#f1c40f", members:[
+    { name:"Bryan", note:"" },
+    { name:"Bjorn", note:"" }
+  ]}
+];
+
+/* --- RENDER UI --- */
+function render(){
+  const container = document.getElementById("roles");
+  container.innerHTML="";
+
+  data.forEach((role, roleIndex)=>{
+    const roleDiv = document.createElement("div");
+    roleDiv.className="role";
+    roleDiv.ondragover = e => e.preventDefault();
+    roleDiv.ondrop = e => dropMember(e, roleIndex);
+
+    const header = document.createElement("div");
+    header.className="role-header";
+
+    const title = document.createElement("div");
+    title.className="role-title";
+    title.contentEditable=true;
+    title.innerText=role.name;
+    title.style.color=role.color;
+    title.oninput = () => data[roleIndex].name = title.innerText;
+
+    const colorPicker = document.createElement("input");
+    colorPicker.type="color";
+    colorPicker.value=role.color;
+    colorPicker.oninput = ()=>{
+      role.color = colorPicker.value;
+      render();
+    }
+
+    const deleteRole = document.createElement("button");
+    deleteRole.className="delete-role";
+    deleteRole.innerText="🗑️";
+    deleteRole.onclick = ()=>{
+      if(confirm("Weet je zeker dat je deze rol wilt verwijderen?")){
+        data.splice(roleIndex, 1);
+        render();
+      }
+    };
+
+    header.appendChild(title);
+    header.appendChild(colorPicker);
+    header.appendChild(deleteRole);
+    roleDiv.appendChild(header);
+
+    role.members.forEach((member, memberIndex)=>{
+      const memberDiv = document.createElement("div");
+      memberDiv.className="member";
+      memberDiv.draggable=true;
+      memberDiv.ondragstart = () => dragMember(roleIndex, memberIndex);
+      memberDiv.onclick = () => openNotePopup(roleIndex, memberIndex);
+
+      const info = document.createElement("div");
+      info.className="member-info";
+
+      const img = document.createElement("img");
+      img.src = `https://mc-heads.net/avatar/${member.name}/40`;
+
+      const name = document.createElement("span");
+      name.innerText = member.name;
+
+      info.appendChild(img);
+      info.appendChild(name);
+
+      const del = document.createElement("button");
+      del.className="member-delete";
+      del.innerText="✕";
+      del.onclick = (e)=>{
+        e.stopPropagation();
+        data[roleIndex].members.splice(memberIndex, 1);
+        render();
+      };
+
+      memberDiv.appendChild(info);
+      memberDiv.appendChild(del);
+      roleDiv.appendChild(memberDiv);
+    });
+
+    const addBtn = document.createElement("button");
+    addBtn.innerText="➕ Persoon";
+    addBtn.onclick = ()=>{
+      const name = prompt("Minecraft naam:");
+      if(name){
+        data[roleIndex].members.push({ name:name, note:"" });
+        render();
+      }
+    };
+
+    roleDiv.appendChild(addBtn);
+    container.appendChild(roleDiv);
+  });
+}
+
+/* --- NOTE POPUP --- */
+function openNotePopup(roleIndex, memberIndex){
+  const member = data[roleIndex].members[memberIndex];
+
+  const popup = document.createElement("div");
+  popup.className="note-popup";
+
+  popup.innerHTML = `
+    <h2>Notitie voor ${member.name}</h2>
+    <textarea id="noteArea">${member.note}</textarea>
+    <button id="saveNote">Opslaan</button>
+    <button id="closeNote">Sluiten</button>
+  `;
+
+  document.body.appendChild(popup);
+
+  document.getElementById("saveNote").onclick = ()=>{
+    member.note = document.getElementById("noteArea").value;
+    popup.remove();
+  };
+
+  document.getElementById("closeNote").onclick = ()=>{
+    popup.remove();
+  };
+}
+
+/* --- DRAG & DROP --- */
+let dragged = null;
+
+function dragMember(roleIndex, memberIndex){
+  dragged = { roleIndex, memberIndex };
+}
+
+function dropMember(e, newRoleIndex){
+  if(dragged){
+    const member = data[dragged.roleIndex].members.splice(dragged.memberIndex,1)[0];
+    data[newRoleIndex].members.push(member);
+    dragged=null;
+    render();
+  }
+}
+
+/* --- ADD ROLE --- */
+function addRole(){
+  const name = prompt("Naam van de nieuwe rol:");
+  if(name){
+    data.push({ name:name, color:"#ffffff", members:[] });
+    render();
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
